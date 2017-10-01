@@ -3,13 +3,17 @@ from utils import learning_rules as rules
 
 
 class PermutationParityMachine(object):
-    """
+    """Permutation Parity Machine (PPM)
+    Used in Neural Cryptography to generate a key of size K*N via its weights. Weights consists of 0s and 1s.
 
     """
 
     def __init__(self, k, n):
-        """
+        """Initializes the PPM
 
+        Args:
+            k (int): Number of neurons.
+            n (int): Number of weights per neuron.
         """
         # Hyper-parameters
         self.k = k
@@ -23,13 +27,13 @@ class PermutationParityMachine(object):
         self.weights = np.random.randint(0, 2, [k, n])
 
     def output(self, x):
-        """
+        """Produces the output parity of a given input array.
 
         Args:
-            x:
+            x (numpy.ndarray): An integer array consisting of 0s and 1s.
 
         Returns:
-
+            (int). A 0 or 1 depending on the model's process.
         """
         self._sigma = np.sign(np.sum(np.bitwise_xor(x, self.weights), axis=0) - self.n/2)
         self._sigma[np.where(self._sigma < 0)] = 0
@@ -44,10 +48,10 @@ class PermutationParityMachine(object):
         return self._tau
 
     def update(self, tau_b):
-        """
+        """Updates the PPM model using a hebbian learning rule.
 
         Args:
-            tau_b:
+            tau_b (int): The output of the other given machine used to train the PPM.
 
         Returns:
 
@@ -63,9 +67,9 @@ class PermutationParityMachine(object):
         self._tau = None
 
     def get_key(self):
-        """ Returns the weights as a K*N integer array.
+        """Returns the weights as a K*N integer array.
 
         Returns:
-            Numpy Array (Int64).
+            (numpy.ndarray). Integer array consisting of 0s and 1s.
         """
         return self.weights.reshape(self.k * self.n)

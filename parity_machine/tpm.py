@@ -3,7 +3,8 @@ import utils.learning_rules as rules
 
 
 class TreeParityMachine(object):
-    """Used in Neural Cryptography to generate a key of size K*N via its weights.
+    """Tree Parity Machine
+    Used in Neural Cryptography to generate a key of size K*N via its weights. Weights consist of integers from -L to L.
 
     """
 
@@ -11,9 +12,9 @@ class TreeParityMachine(object):
         """
 
         Args:
-            k: Integer. Number of hidden neurons in hidden layer.
-            n: Integer. Number of weights for each neuron.
-            l: Integer. Range of integers for weights from -l to l.
+            k (int): Number of hidden neurons in hidden layer.
+            n (int): Number of weights for each neuron.
+            l (int): Range of integers for weights from -l to l.
         """
         # Hyper-parameters
         self.k = k
@@ -28,13 +29,13 @@ class TreeParityMachine(object):
         self.weights = np.random.randint(-l, l+1, [k, n])
 
     def output(self, x):
-        """
+        """Produces the output parity of a given input array.
 
         Args:
-            x:
+            x (numpy.ndarray): An integer array consisting of -1s and 1s.
 
         Returns:
-
+            (int). A 0 or 1 depending on the model's process.
         """
         self._sigma = np.sign(np.sum(x * self.weights, axis=1)).reshape(-1, 1)
         self._sigma[np.where(self._sigma == 0)] -= 1
@@ -47,10 +48,10 @@ class TreeParityMachine(object):
         return self._tau
 
     def update(self, tau_b):
-        """
+        """Updates the TPM model using a hebbian learning rule.
 
         Args:
-            tau_b:
+            tau_b (int): The output of the other given machine used to train the PPM.
 
         Returns:
 
@@ -66,9 +67,9 @@ class TreeParityMachine(object):
         self._tau = None
 
     def get_key(self):
-        """ Returns the weights as a K*N integer array.
+        """Returns the weights as a K*N integer array.
 
         Returns:
-            Numpy Array (Int64).
+            (numpy.ndarray). Integer array consisting of 0s and 1s.
         """
         return self.weights.reshape(self.k * self.n)
