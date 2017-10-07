@@ -1,5 +1,5 @@
 import numpy as np
-from utils import generate_input, generate_perm_input
+from utils import gen_tpm_inputs, gen_ppm_inputs
 
 
 class PermutationParityTrainer(object):
@@ -24,7 +24,8 @@ class PermutationParityTrainer(object):
         if not self.hyperparams_same(model_a, model_b):
             raise ValueError("Models are incompatible. Need same hyper-parameters (K, N, L).")
 
-        x = generate_perm_input(model_a.k, model_a.n)
+        K, N, L = model_a.get_hyper_params()
+        x = gen_ppm_inputs(K, N)
 
         tau_a = model_a.output(x)
         tau_b = model_b.output(x)
@@ -51,7 +52,8 @@ class PermutationParityTrainer(object):
         if not self.hyperparams_same(model_a, model_b) or not self.hyperparams_same(model_a, eve):
             raise ValueError("Models are incompatible. Need same hyper-parameters (K, N).")
 
-        x = generate_perm_input(model_a.k, model_a.n)
+        K, N, L = model_a.get_hyper_params()
+        x = gen_ppm_inputs(K, N)
 
         tau_a = model_a.output(x)
         tau_b = model_b.output(x)
@@ -89,7 +91,8 @@ class PermutationParityTrainer(object):
         n_iter = 0
         progress = []
         while total_iter > 0 or not trained:
-            progress.append(np.equal(model_a.weights == model_b.weights, True).sum() / np.prod(model_a.shape))
+            progress.append(np.equal(model_a.get_key() == model_b.get_key(), True).sum() *
+                            1. / np.prod(model_a.get_key().shape))
 
             if np.array_equal(model_a.weights, model_b.weights):
                 trained = True
@@ -128,9 +131,12 @@ class PermutationParityTrainer(object):
         n_iter = 0
         progress = []
         while total_iter > 0 or not trained:
-            progress.append([np.equal(model_a.weights, model_b.weights).sum() * 1. / np.prod(model_a.weights.shape),
-                             np.equal(model_a.weights, eve.weights).sum() * 1. / np.prod(model_a.weights.shape),
-                             np.equal(model_b.weights, eve.weights).sum() * 1. / np.prod(model_a.weights.shape)])
+            progress.append([np.equal(model_a.get_key(), model_b.get_key()).sum() *
+                             1. / np.prod(model_a.get_key().shape),
+                             np.equal(model_a.get_key(), eve.get_key()).sum() *
+                             1. / np.prod(model_a.get_key().shape),
+                             np.equal(model_b.get_key(), eve.get_key()).sum() *
+                             1. / np.prod(model_a.get_key().shape)])
 
             if np.array_equal(model_a.weights, model_b.weights):
                 trained = True
@@ -158,7 +164,7 @@ class PermutationParityTrainer(object):
         Returns:
             Boolean. True if the hyper-parameters are the same, False otherwise.
         """
-        if model_a.k == model_b.k and model_a.n == model_b.n:
+        if model_a.get_hyper_params() == model_b.get_hyper_params():
                 return True
         return False
 
@@ -185,7 +191,7 @@ class TreeParityTrainer(object):
         if not self.hyperparams_same(model_a, model_b):
             raise ValueError("Models are incompatible. Need same hyper-parameters (K, N, L).")
 
-        x = generate_input(model_a.k, model_a.n)
+        x = gen_tpm_inputs(model_a.k, model_a.n)
 
         tau_a = model_a.output(x)
         tau_b = model_b.output(x)
@@ -194,7 +200,7 @@ class TreeParityTrainer(object):
             model_a.update(tau_b)
             model_b.update(tau_a)
 
-        return (tau_a == tau_b), (tau_a == tau_b) and (tau_a == tau_eve)
+        return tau_a == tau_b
 
     def train_step(self, model_a, model_b, eve):
         """Updates model a and model b if they have the same tau given the random input.
@@ -212,7 +218,8 @@ class TreeParityTrainer(object):
         if not self.hyperparams_same(model_a, model_b) or not self.hyperparams_same(model_a, eve):
             raise ValueError("Models are incompatible. Need same hyper-parameters (K, N, L).")
 
-        x = generate_input(model_a.k, model_a.n)
+        K, N, L = model_a.get_hyper_params()
+        x = gen_tpm_inputs(K, N)
 
         tau_a = model_a.output(x)
         tau_b = model_b.output(x)
@@ -227,7 +234,7 @@ class TreeParityTrainer(object):
 
         return (tau_a == tau_b), (tau_a == tau_b) and (tau_a == tau_eve)
 
-    def train(self, model_a, model_b, total_iter=np.infty, step=None):
+    def train(self, model_a, model_b, total_iter=np.infty, print_step=None):
         """Runs through several training steps with model A and B, attempting to have a closer match.
 
         Args:
@@ -250,13 +257,13 @@ class TreeParityTrainer(object):
         n_iter = 0
         progress = []
         while total_iter > 0 or not trained:
-            progress.append(np.equal(model_a.weights == model_b.weights, True).sum() / np.prod(model_a.shape))
+            progress.append(np.equal(model_a.get_key() == model_b.get_key(), True).sum() / np.prod(model_a.shape))
 
-            if np.array_equal(model_a.weights, model_b.weights):
+            if np.array_equal(model_a.get_key(), model_b.get_key()):
                 trained = True
                 break
 
-            if step is not None and ((n_iter + 1) % step) == 0:
+            if print_step is not None and ((n_iter + 1) % print_step) == 0:
                 print "Step:", n_iter + 1
                 print "Percent Match (A & B):", progress[-1][0]
                 print "Percent Match (A & Eve):", progress[-1][1]
@@ -267,7 +274,7 @@ class TreeParityTrainer(object):
             n_iter += 1
         return [trained, n_iter, progress]
 
-    def train(self, model_a, model_b, eve, total_iter=np.infty, step=None):
+    def train(self, model_a, model_b, eve, total_iter=np.infty, print_step=None):
         """Runs through several training steps with model A and B, attempting to have a closer match.
 
         Args:
@@ -291,15 +298,18 @@ class TreeParityTrainer(object):
         n_iter = 0
         progress = []
         while total_iter > 0 or not trained:
-            progress.append([np.equal(model_a.weights, model_b.weights).sum() * 1. / np.prod(model_a.weights.shape),
-                             np.equal(model_a.weights, eve.weights).sum() * 1. / np.prod(model_a.weights.shape),
-                             np.equal(model_b.weights, eve.weights).sum() * 1. / np.prod(model_a.weights.shape)])
+            progress.append([np.equal(model_a.get_key(), model_b.get_key()).sum() *
+                             1. / np.prod(model_a.get_key().shape),
+                             np.equal(model_a.get_key(), eve.get_key()).sum() *
+                             1. / np.prod(model_a.get_key().shape),
+                             np.equal(model_b.get_key(), eve.get_key()).sum() *
+                             1. / np.prod(model_a.get_key().shape)])
 
-            if np.array_equal(model_a.weights, model_b.weights):
+            if np.array_equal(model_a.get_key(), model_b.get_key()):
                 trained = True
                 break
 
-            if step is not None and ((n_iter + 1) % step) == 0:
+            if print_step is not None and ((n_iter + 1) % print_step) == 0:
                 print "Step:", n_iter + 1
                 print "Percent Match (A & B):", progress[-1][0]
                 print "Percent Match (A & Eve):", progress[-1][1]
@@ -321,6 +331,6 @@ class TreeParityTrainer(object):
         Returns:
             Boolean. True if the hyper-parameters are the same, False otherwise.
         """
-        if model_a.k == model_b.k and model_a.n == model_b.n and model_a.l == model_b.l:
+        if model_a.get_hyper_params() == model_b.get_hyper_params():
                 return True
         return False

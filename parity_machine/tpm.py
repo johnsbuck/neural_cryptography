@@ -8,25 +8,33 @@ class TreeParityMachine(object):
 
     """
 
-    def __init__(self, k, n, l):
+    def __init__(self, K, N, L):
         """
 
         Args:
-            k (int): Number of hidden neurons in hidden layer.
-            n (int): Number of weights for each neuron.
-            l (int): Range of integers for weights from -l to l.
+            K (int): Number of hidden neurons in hidden layer.
+            N (int): Number of weights for each neuron.
+            L (int): Range of integers for weights from -L to L.
         """
         # Hyper-parameters
-        self.k = k
-        self.l = l
-        self.n = n
+        self._K = K
+        self._N = N
+        self._L = L
 
         # Training Parameters
         self._sigma = None
         self._x = None
         self._tau = None
 
-        self.weights = np.random.randint(-l, l+1, [k, n])
+        self._weights = np.random.randint(-L, L + 1, [K, N])
+
+    def get_hyper_params(self):
+        """
+
+        Returns:
+            (List<int>) Hyper-parameters defined in initialization
+        """
+        return [self._K, self._N, self._L]
 
     def output(self, x):
         """Produces the output parity of a given input array.
@@ -37,7 +45,7 @@ class TreeParityMachine(object):
         Returns:
             (int). A 0 or 1 depending on the model's process.
         """
-        self._sigma = np.sign(np.sum(x * self.weights, axis=1)).reshape(-1, 1)
+        self._sigma = np.sign(np.sum(x * self._weights, axis=1)).reshape(-1, 1)
         self._sigma[np.where(self._sigma == 0)] -= 1
         self._tau = np.prod(self._sigma)
 
@@ -59,7 +67,7 @@ class TreeParityMachine(object):
         if None is self._sigma or None is self._x or None is self._tau:
             raise ValueError("Did not obtain output for training. Training parameters undefined.")
 
-        self.weights = rules.hebbian(self.weights, self._x, self._sigma, -self.l, self.l, self._tau, tau_b)
+        self._weights = rules.hebbian(self._weights, self._x, self._sigma, -self._L, self._L, self._tau, tau_b)
 
         # Reset training variables for next update
         self._sigma = None
@@ -72,4 +80,4 @@ class TreeParityMachine(object):
         Returns:
             (numpy.ndarray). Integer array consisting of 0s and 1s.
         """
-        return self.weights.reshape(self.k * self.n)
+        return self._weights.reshape(self._K * self._N)

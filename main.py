@@ -16,7 +16,7 @@ for ex in xrange(n_examples):
 
     trainer = TreeParityTrainer()
 
-    data = trainer.train(model_a, model_b, eve, step=1000)
+    data = trainer.train(model_a, model_b, eve, print_step=1000)
     progress.append(np.array(data[-1]))
     lengths.append(data[1])
 

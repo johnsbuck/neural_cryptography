@@ -8,23 +8,23 @@ class PermutationParityMachine(object):
 
     """
 
-    def __init__(self, k, n):
+    def __init__(self, K, N):
         """Initializes the PPM
 
         Args:
-            k (int): Number of neurons.
-            n (int): Number of weights per neuron.
+            K (int): Number of neurons.
+            N (int): Number of weights per neuron.
         """
         # Hyper-parameters
-        self.k = k
-        self.n = n
+        self.K = K
+        self.N = N
 
         # Training Parameters
         self._sigma = None
         self._x = None
         self._tau = None
 
-        self.weights = np.random.randint(0, 2, [k, n])
+        self.weights = np.random.randint(0, 2, [K, N])
 
     def output(self, x):
         """Produces the output parity of a given input array.
@@ -35,7 +35,7 @@ class PermutationParityMachine(object):
         Returns:
             (int). A 0 or 1 depending on the model's process.
         """
-        self._sigma = np.sign(np.sum(np.bitwise_xor(x, self.weights), axis=0) - self.n/2)
+        self._sigma = np.sign(np.sum(np.bitwise_xor(x, self.weights), axis=0) - self.N / 2)
         self._sigma[np.where(self._sigma < 0)] = 0
         self._tau = np.bitwise_xor.reduce(self._sigma)
 
@@ -72,4 +72,4 @@ class PermutationParityMachine(object):
         Returns:
             (numpy.ndarray). Integer array consisting of 0s and 1s.
         """
-        return self.weights.reshape(self.k * self.n)
+        return self.weights.reshape(self.K * self.N)
