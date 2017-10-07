@@ -40,36 +40,53 @@ def gen_ppm_inputs(K, N, one_dim=False):
     return generate(0, 1, [K, N])
 
 
-def gen_tpm_rep_inputs(K, N, one_dim=False):
+def gen_tpm_rep_inputs(K, N, one_dim=False, rep=True):
     """Used to generate repeated inputs for the TreeParityMachine (TPM).
 
     Args:
         K (int): Number of neurons in TPM (Repeats message K times)
         N (int): Message size.
         one_dim (bool): If True, will generate a [1, k*n] array. Otherwise, will generate a [k, n] array.
-                (Optional: False)
+            (Optional: False)
+        rep (bool): If True, will generate a N-length array repeated K times (dimension dependent on one_dim).
+            Otherwise, will generate a [1, N]-shaped array.
+            (Optional: True)
 
 
     Returns:
         (numpy.ndarray). Input used to train TPM.
     """
+    x = generate(0, 1, [1, N])
+
+    if not rep:
+        return x
+
     if one_dim:
-        return repmat(generate(-1, 1, [1, N]), K, 1)
-    return repmat(generate(-1, 1, [1, N]), 1, K)
+        return repmat(x, 1, K)
+    return repmat(x, K, 1)
 
 
-def gen_ppm_rep_inputs(K, N, one_dim=False):
+def gen_ppm_rep_inputs(K, N, one_dim=False, rep=True):
     """Used to generate repeated inputs for the PermutationParityMachine (PPM).
 
     Args:
         K (int): Number of neurons in PPM (Repeats message K times)
         N (int): Message size.
         one_dim (bool): If True, will generate a [1, k*n] array. Otherwise, will generate a [k, n] array.
-                (Optional: False)
+            (Optional: False)
+        rep (bool): If True, will generate a N-length array repeated K times (dimension dependent on one_dim).
+            Otherwise, will generate a [1, N]-shaped array.
+            (Optional: True)
 
     Returns:
         (numpy.ndarray). Input used to train PPM.
     """
+
+    x = generate(0, 1, [1, N])
+
+    if not rep:
+        return x
+
     if one_dim:
-        return repmat(generate(0, 1, [1, N]), K, 1)
-    return repmat(generate(0, 1, [1, N]), 1, K)
+        return repmat(x, 1, K)
+    return repmat(x, K, 1)
