@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import UnivariateSpline
 
-from parity_machine import PermutationParityMachine, TreeParityMachine, TreeParityTrainer, PermutationParityTrainer
+from parity_machine import TreeParityMachine
+from trainers import tpm_trainer
 
 
 progress = []
@@ -14,9 +15,7 @@ for ex in xrange(n_examples):
     model_b = TreeParityMachine(10, 10, 3)
     eve = TreeParityMachine(10, 10, 3)
 
-    trainer = TreeParityTrainer()
-
-    data = trainer.train(model_a, model_b, eve, print_step=1000)
+    data = tpm_trainer.train(model_a, model_b, eve, print_step=1000)
     progress.append(np.array(data[-1]))
     lengths.append(data[1])
 
